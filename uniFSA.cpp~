@@ -1,0 +1,160 @@
+/**********************************
+*Name: Andrew Sowell
+*Date: 04/28/14
+*CS:  Formal Languages and Automata
+*Professor Sang
+*Project: Universal Finite State Automaton
+
+
+Compilation:  Place both uniFSA.cpp and inputFSA.txt in
+the current folder. From command line, compile and run uniFSA.cpp
+through the following command:
+
+	g++ uniFSA.cpp -std=gnu++0
+
+*the last part was required with my GNU/gcc compiler in order to 
+process <unordered_maps>. It may not be neccessary.
+
+NOTE: Output is written to file outputFSA.txt
+**********************************/
+#include <vector>
+#include <set>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <cstdio>
+#include <iomanip>
+#include <unordered_map>
+
+using namespace std;
+
+
+int convertToInt(string str) {
+	int result;
+	stringstream convert(str);
+	convert >> result;
+	return result;
+}
+
+int main() 
+{
+
+	//open input file and get total number of states
+	ifstream ifile;
+	ifile.open("inputF.txt");
+	string states;
+	int numStates, fsa = 1;
+	getline(ifile, states);
+
+	ofstream ofile;
+	ofile.open("outputFSA.txt");
+
+	while (!ifile.eof()) {
+
+		numStates = convertToInt(states);
+		ofile << "Finite State Automaton #" << fsa << endl; fsa++;
+		ofile << "(1) Number of States: " << numStates << endl;
+
+		//create Boolean array for final states, initialized to false
+		bool finalArr[numStates+1];
+		fill_n(finalArr, numStates+1, false);
+
+
+		string numFinal, finalBuf;
+		getline(ifile, numFinal);
+		stringstream ssfin(numFinal);
+		int finalIndex;
+		//update Boolean array with final states
+		ofile << "(2) Final States: ";
+		while (ssfin >> finalBuf) {
+			finalIndex = convertToInt(finalBuf);
+			ofile << finalIndex << " ";
+			finalArr[finalIndex] = true;
+		}
+		ofile << endl;	
+
+		//place Alphabet in set and hashmap
+		string alphabet, letter;
+		int k = 0;
+		set<string> alphaset;
+		unordered_map<string, int> alphmap;
+		getline(ifile, alphabet); 
+		stringstream ssbet(alphabet);
+		ofile << "(3) Alphabet: ";
+		while (ssbet >> letter) {
+			alphmap[letter] = k;
+			k++;
+			alphaset.insert(letter);
+			ofile << letter << " ";
+		}
+		ofile << endl;
+
+		//create multiarray for states and symbols.
+		//initialize values to TRAP value (number of states)
+		int stateTable [numStates][alphabet.length()];
+		int i, j;
+		for (i = 0; i < numStates; i++) {
+			for (j = 0; j < alphabet.length(); j++)
+				stateTable[i][j] = numStates;
+		}
+
+		//input transitions into multiarray (stateTable)
+		string trans, transition, token;
+		int st, sym, nst;
+		char buf;
+		getline(ifile, trans);
+		ofile << "(4) Transitions:\n";
+		do {
+			transition = trans;
+			transition.erase(0,1);  //erase open paren
+			transition.erase(transition.end()-1); //erase closing paren
+			stringstream sstran(transition);
+			getline(sstran, token, ',');
+			st = convertToInt(token);
+			getline(sstran, token, ',');
+			sym = alphmap[token];
+			getline(sstran, token, ',');
+			nst = convertToInt(token);
+			stateTable [st][sym] = nst; //update stateTable
+			ofile << "  " << st << " " << sym << " " << nst << endl;
+			getline(ifile, trans);
+		} while (trans[0] == '(');
+
+		string input = trans, strsymbol;
+		int state, symbol;
+
+		//process input
+		ofile << "(5) Strings:\n";
+		while (input != "end") {
+			
+			state = 0;	
+			for (int i = 0; i < input.length(); i++) {
+				strsymbol = input[i];	
+				symbol = alphmap[strsymbol];
+				//if symbol is in the alphabet
+				if (alphaset.find(strsymbol) != alphaset.end()) {
+					state = stateTable[state][symbol];
+					if (state == numStates) {
+						break;
+					}
+				}
+				else 
+					break;
+					
+			}
+
+			if (finalArr[state] == true) 
+				ofile << setw(30) << input << "  " << setw(10) << "Accepted\n";
+			else
+				ofile << setw(30) << input << "  " << setw(10) << "Rejected\n";
+
+			getline(ifile, input);
+		}
+	ofile << endl << endl;
+	getline(ifile, states);
+	}
+	ofile.close();
+
+return 0;
+}
