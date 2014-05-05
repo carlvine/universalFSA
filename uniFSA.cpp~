@@ -1,22 +1,3 @@
-/**********************************
-*Name: Andrew Sowell
-*Date: 04/28/14
-*CS:  Formal Languages and Automata
-*Professor Sang
-*Project: Universal Finite State Automaton
-
-
-Compilation:  Place both uniFSA.cpp and inputFSA.txt in
-the current folder. From command line, compile and run uniFSA.cpp
-through the following command:
-
-	g++ uniFSA.cpp -std=gnu++0
-
-*the last part was required with my GNU/gcc compiler in order to 
-process <unordered_maps>. It may not be neccessary.
-
-NOTE: Output is written to file outputFSA.txt
-**********************************/
 #include <vector>
 #include <set>
 #include <iostream>
